@@ -72,18 +72,34 @@ tail(data)
 # covid_summary
 
 # plot for top country by posituve case ratio 
-result <- data %>%
-  arrange(desc(positive))
+results <- data %>% group_by(Country_Region)  %>% summarize(
+  total_tests  = sum(total_tested, na.rm = TRUE), 
+  total_positives = sum(positive, na.rm = TRUE)
+) %>% mutate (
+  positive_ratio = total_positives / total_tests 
+)
 
-head(result)
+top10 <- results %>% arrange(desc(positive_ratio)) %>% slice(1:10)
 
 
-# ggplot(top10, aes(x = reorder(country, positive_ratio),
-#                   y = positive_ratio)) +
-#   geom_col(fill = "tomato") +
-#   coord_flip() +
-#   labs(
-#     title = "Top 10 Countries by Positive Case Ratio",
-#     x = "Country",
-#     y = "Positive Ratio"
-#   )
+ggplot(top10, aes(x = reorder(Country_Region, positive_ratio),
+                  y = positive_ratio)) +
+  geom_col(fill = "tomato") +
+  coord_flip() +
+  labs(
+    title = "Top 10 Countries by Positive Case Ratio",
+    x = "Country",
+    y = "Positive Ratio"
+  )
+
+ggsave("plots/top10_positive_ratio.png", width = 8, height = 5)
+
+ggplot(results, aes(x = total_tests, y = positive_ratio)) +
+  geom_point(alpha = 0.6) +
+  labs(
+    title = "Total Tests vs Positive Case Ratio",
+    x = "Total Tests",
+    y = "Positive Case Ratio"
+  )
+
+ggsave("plots/scatter_top10_positive_ratio.png", width = 8, height = 5)
